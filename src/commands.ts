@@ -1,4 +1,5 @@
 import { ApplicationCommandOptionType } from './discord/constants.ts';
+import { MAX_INPUT_LENGTH } from './dice/limits.ts';
 
 /** Command definitions. Edit here, then run `npm run register`.
  *  Imported by both the Worker (to dispatch) and scripts/register.ts (to upload).
@@ -14,6 +15,10 @@ export const ROLL_COMMAND = {
       description: 'What to roll, e.g. 4d6kh3, 5d10>=7f1, 3d12+5(d5+2)kh2. See /help.',
       type: ApplicationCommandOptionType.STRING,
       required: true,
+      // Enforced by Discord before the request is ever sent, so an over-long
+      // argument costs the Worker nothing. Re-checked server-side regardless.
+      min_length: 1,
+      max_length: MAX_INPUT_LENGTH,
     },
     {
       name: 'private',

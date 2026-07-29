@@ -8,8 +8,20 @@ import { DiceError } from './dice/types.ts';
 
 interface MessageResponse {
   type: number;
-  data: { content: string; flags?: number };
+  data: {
+    content: string;
+    flags?: number;
+    allowed_mentions: { parse: never[] };
+  };
 }
+
+/**
+ * Rolls echo user text — comments and face names — back into a message the
+ * bot sends. Without this, `/roll d6 # @everyone` would ping the server with
+ * the bot's permissions. An empty `parse` list makes every mention in the
+ * content inert, so no filtering of the text itself is needed for safety.
+ */
+const NO_MENTIONS = { parse: [] as never[] };
 
 /** Routes an application command to its handler. */
 export function handleCommand(interaction: Interaction): MessageResponse {
@@ -41,6 +53,10 @@ function handleRoll(interaction: Interaction): MessageResponse {
 function reply(content: string, ephemeral = false): MessageResponse {
   return {
     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-    data: ephemeral ? { content, flags: EPHEMERAL } : { content },
+    data: {
+      content,
+      allowed_mentions: NO_MENTIONS,
+      ...(ephemeral ? { flags: EPHEMERAL } : {}),
+    },
   };
 }

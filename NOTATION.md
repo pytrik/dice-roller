@@ -39,7 +39,8 @@ the positive range. Sides must be whole numbers — no fractional dice.
 ### Custom faces
 
 `d[...]` takes a comma-separated face list. Repeated entries are how you weight
-a die — `d[1,1,2,3]` rolls 1 twice as often as 2.
+a die — `d[1,1,2,3]` rolls 1 twice as often as 2. Face names may use letters,
+numbers, spaces and `-_'+`; see "Untrusted text" below for why.
 
 - **All faces numeric** → behaves like any other die. Sums, and accepts every
   modifier.
@@ -168,10 +169,15 @@ Discord's 2000-character message limit.
 
 | Limit | Value | On breach |
 | --- | --- | --- |
+| Input length | 500 characters | `DiceError` |
 | Dice rolled per request | 1000 | `DiceError` |
+| Evaluation steps per request | 100,000 | `DiceError` |
+| Bracket / repetition nesting | 16 levels | `DiceError` |
 | Sides per die | 1,000,000 | `DiceError` |
 | Faces in a `d[...]` list | 100 | `DiceError` |
+| Length of one face name | 24 characters | `DiceError` |
 | Expressions per request | 20 | `DiceError` |
+| Comment length | 200 characters | truncated |
 
 Explosions and rerolls draw from the same 1000-dice budget, which is what stops
 `d1!` from looping forever:
@@ -182,6 +188,35 @@ d1!  ->  ❌ Roll exceeded 1000 dice
 
 Hitting a cap always errors. A roll is never silently truncated to a wrong
 total.
+
+The **step** limit exists because the dice budget cannot see every kind of
+expensive roll. `100(100(100(100(1))))` rolls no dice whatsoever, yet costs
+around 10^8 evaluations — roughly ninety times the Worker's CPU allowance.
+Counting evaluation work, not just dice, is what bounds it.
+
+The **nesting** limit exists because the parser and the evaluator both recurse
+once per level. Without it a long run of `(` overflows the stack, and a
+`RangeError` is not a `DiceError`, so it would reach the user as "something
+went wrong" rather than as advice.
+
+## Untrusted text
+
+Face names and comments are the only free text in the notation, and both are
+echoed back into a message the bot sends.
+
+- **Face names** accept letters, numbers, spaces, and `-`, `_`, `'`, `+`.
+  Anything else is rejected. This is the one place a character allowlist is
+  worth more than the grammar, because the grammar has no opinion about what
+  makes a good face name.
+- **Comments** stay free-form, but markdown characters in them are escaped so a
+  comment renders as text rather than as formatting.
+- **Invisible characters** — C0/C1 controls, zero-width characters and the bidi
+  overrides — are stripped from all input. A right-to-left override could
+  otherwise make a roll display as something it is not.
+- **Mentions never ping.** Every response sets `allowed_mentions` to an empty
+  parse list, so `@everyone` in a comment is inert text. This is enforced on the
+  response rather than by filtering the text, which is why no mention-stripping
+  appears in the notation rules.
 
 ## Output
 

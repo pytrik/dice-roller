@@ -1,4 +1,13 @@
-import { MAX_EXPRESSIONS, MAX_FACES, MAX_REPEATS, MAX_SIDES } from './limits.ts';
+import {
+  FACE_PATTERN,
+  MAX_DEPTH,
+  MAX_EXPRESSIONS,
+  MAX_FACE_LENGTH,
+  MAX_FACES,
+  MAX_REPEATS,
+  MAX_SIDES,
+} from './limits.ts';
+import { normalizeComment, normalizeInput, quote } from './sanitize.ts';
 import { Scanner } from './scanner.ts';
 import {
   DiceError,
@@ -32,8 +41,8 @@ const PRODUCT_OPS = ['*', '//', '/~', '/'] as const;
 const COMPARISON_OPS = ['>=', '<=', '>', '<', '='] as const;
 
 /** Parses a whole `/roll` argument: repeats, several expressions, a comment. */
-export function parseProgram(input: string): Program {
-  const { expressions, comment } = splitProgram(input);
+export function parseProgram(raw: string): Program {
+  const { expressions, comment } = splitProgram(normalizeInput(raw));
 
   if (expressions.length === 0) throw new DiceError('Nothing to roll.');
   if (expressions.length > MAX_EXPRESSIONS) {
@@ -55,15 +64,29 @@ export function parseProgram(input: string): Program {
 }
 
 /** Parses a single expression. Exported for tests and for the local CLI. */
-export function parse(input: string): Node {
+export function parse(raw: string): Node {
+  const input = normalizeInput(raw);
   const scanner = new Scanner(input);
-  if (scanner.atEnd()) throw new DiceError('Nothing to roll.');
 
   const node = parseSum(scanner);
   if (!scanner.atEnd()) {
-    throw new DiceError(`Unexpected \`${scanner.rest()}\` in \`${input.trim()}\`.`);
+    throw new DiceError(`Unexpected ${quote(scanner.rest())} in ${quote(input)}.`);
   }
   return node;
+}
+
+/** Guards the one place both the parser and the evaluator recurse. Without it
+ *  a long run of `(` overflows the stack, and a RangeError is not a DiceError
+ *  so it would surface as "something went wrong" instead of as advice. */
+function nest<T>(scanner: Scanner, body: () => T): T {
+  if (++scanner.nesting > MAX_DEPTH) {
+    throw new DiceError(`Too much nesting — at most ${MAX_DEPTH} levels of brackets.`);
+  }
+  try {
+    return body();
+  } finally {
+    scanner.nesting--;
+  }
 }
 
 /* ------------------------------------------------------- program splitting */
@@ -82,7 +105,7 @@ function splitProgram(input: string): { expressions: string[]; comment: string |
     else if (char === ')' || char === ']') depth--;
 
     if (char === '#' && depth === 0) {
-      comment = input.slice(i + 1).trim() || null;
+      comment = normalizeComment(input.slice(i + 1));
       break;
     }
     if (char === ',' && depth === 0) {
@@ -147,7 +170,7 @@ function parseAtom(scanner: Scanner): Node {
       if (leading > MAX_REPEATS) {
         throw new DiceError(`Cannot repeat more than ${MAX_REPEATS} times.`);
       }
-      const body = parseSum(scanner);
+      const body = nest(scanner, () => parseSum(scanner));
       expect(scanner, ')');
       return { kind: 'repeat', times: leading, body, source: scanner.since(start) };
     }
@@ -158,7 +181,7 @@ function parseAtom(scanner: Scanner): Node {
   }
 
   if (scanner.eat('(')) {
-    const node = parseSum(scanner);
+    const node = nest(scanner, () => parseSum(scanner));
     expect(scanner, ')');
     return node;
   }
@@ -169,7 +192,9 @@ function parseAtom(scanner: Scanner): Node {
 
   const rest = scanner.rest();
   throw new DiceError(
-    rest === '' ? 'Expression ends unexpectedly.' : `Expected a number or dice term, got \`${rest}\`.`,
+    rest === ''
+      ? 'Expression ends unexpectedly.'
+      : `Expected a number or dice term, got ${quote(rest)}.`,
   );
 }
 
@@ -200,6 +225,19 @@ function parseFaceList(scanner: Scanner): DieSpec {
   }
   if (faces.length > MAX_FACES) {
     throw new DiceError(`A die cannot have more than ${MAX_FACES} faces.`);
+  }
+
+  // Face names are the only free text that reaches the output verbatim, which
+  // makes them the one place an allowlist is worth more than the grammar.
+  for (const face of faces) {
+    if (face.length > MAX_FACE_LENGTH) {
+      throw new DiceError(`Face names cannot be longer than ${MAX_FACE_LENGTH} characters.`);
+    }
+    if (!FACE_PATTERN.test(face)) {
+      throw new DiceError(
+        `Face ${quote(face)} is not allowed — use letters, numbers, spaces, and \`-_'+\`.`,
+      );
+    }
   }
 
   // All-numeric face lists are ordinary dice; anything else is symbolic.
@@ -283,6 +321,8 @@ function parseCondition(scanner: Scanner): Comparison | null {
 function expect(scanner: Scanner, literal: string): void {
   if (!scanner.eat(literal)) {
     const rest = scanner.rest();
-    throw new DiceError(rest === '' ? `Missing \`${literal}\`.` : `Expected \`${literal}\` before \`${rest}\`.`);
+    throw new DiceError(
+      rest === '' ? `Missing \`${literal}\`.` : `Expected \`${literal}\` before ${quote(rest)}.`,
+    );
   }
 }

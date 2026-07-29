@@ -1,3 +1,4 @@
+import { escapeMarkdown } from './sanitize.ts';
 import type { DieGroup, Entry, ProgramResult, RollResult } from './types.ts';
 
 /** Discord hard-caps message content at 2000 characters. */
@@ -9,7 +10,8 @@ const MAX_CONTENT = 1900;
  *   `4d6kh3` → 4d6 [5, 4, 3, ~~1~~] = **12**
  */
 export function formatProgram(result: ProgramResult): string {
-  const header = result.comment ? [`**${result.comment}**`] : [];
+  // The comment is free text the user typed; it is content here, not markup.
+  const header = result.comment ? [`**${escapeMarkdown(result.comment)}**`] : [];
 
   const full = [...header, ...result.rolls.map((roll) => formatRoll(roll, true))];
   if (length(full) <= MAX_CONTENT) return full.join('\n');
@@ -51,7 +53,7 @@ function formatSymbols(counts: Record<string, number>): string {
   if (entries.length === 0) return 'nothing';
   return entries
     .sort((a, b) => b[1] - a[1])
-    .map(([symbol, count]) => `${symbol} ×${count}`)
+    .map(([symbol, count]) => `${escapeMarkdown(symbol)} ×${count}`)
     .join(', ');
 }
 
@@ -66,7 +68,7 @@ function formatGroup(group: DieGroup): string {
 }
 
 function renderFace(group: DieGroup, entry: Entry, index: number): string {
-  if (group.display === 'symbol') return group.symbols?.[index] ?? '?';
+  if (group.display === 'symbol') return escapeMarkdown(group.symbols?.[index] ?? '?');
   if (group.display === 'fudge') return entry.value > 0 ? '+' : entry.value < 0 ? '-' : '0';
   return String(entry.value);
 }

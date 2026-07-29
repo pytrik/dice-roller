@@ -8,6 +8,9 @@
  */
 export class Scanner {
   pos = 0;
+  /** Current bracket/repetition depth. Parser state rather than scanner state,
+   *  but this object is what the parser already threads everywhere. */
+  nesting = 0;
   readonly text: string;
 
   // Written out rather than as a parameter property: Node strips types without

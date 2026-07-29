@@ -88,6 +88,8 @@ export function rollNode(
 /* ------------------------------------------------------------ evaluation -- */
 
 function evalValue(node: Node, context: Context): Value {
+  context.budget.step();
+
   switch (node.kind) {
     case 'number':
       return { total: node.value, kind: 'number' };

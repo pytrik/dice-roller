@@ -40,7 +40,8 @@ src/dice/scanner.ts     character cursor the parser drives
 src/dice/parser.ts      text -> AST      (recursive descent)
 src/dice/roller.ts      AST -> result    (evaluator, RNG injected)
 src/dice/format.ts      result -> Discord markdown
-src/dice/limits.ts      caps + the shared per-request dice budget
+src/dice/limits.ts      caps + the shared per-request dice and step budget
+src/dice/sanitize.ts    input normalisation, markdown escaping, error quoting
 scripts/register.ts     uploads commands to Discord (Node, not the Worker)
 scripts/roll.ts         local CLI: `npm run roll -- "2d6+3"` — no Discord
 DEPLOY.md               go-live steps, deliberately deferred
@@ -66,6 +67,28 @@ DEPLOY.md               go-live steps, deliberately deferred
   Anything else is logged and becomes a generic message.
 - Error replies are ephemeral; successful rolls are public unless `private:true`.
 - Imports use explicit `.ts` extensions (`verbatimModuleSyntax`, no transpile).
+
+## Safety model
+
+The threat is a hostile `/roll` argument, since that is the only untrusted
+input. Four things bound it; keep all four in mind when adding features.
+
+| Guard | Stops |
+| --- | --- |
+| `MAX_INPUT_LENGTH`, plus the option's `max_length` | over-long input, rejected by Discord before it reaches the Worker |
+| `MAX_DEPTH` in the parser | stack overflow from nested `(` — a `RangeError` is not a `DiceError` and would escape as "something went wrong" |
+| `Budget.step()` in the evaluator | repetition nests such as `100(100(100(100(1))))`, which cost ~10^8 evaluations while rolling **zero** dice, so the dice budget never fires |
+| `allowed_mentions: { parse: [] }` on every response | `/roll d6 # @everyone` pinging the server with the bot's permissions |
+
+Plus, on the two free-text fields that get echoed back: face names are
+allowlisted, comments are markdown-escaped, invisible and bidi characters are
+stripped everywhere, and error messages quote user input through `quote()` so
+a stray backtick cannot break out of the code span.
+
+A blanket character blocklist on the whole input was considered and rejected:
+the grammar already refuses everything it does not understand, so a blocklist
+would be a weaker second gate — and it cannot express the rules that actually
+matter, which are about *echoed* text rather than parsed text.
 
 ## Constraints worth remembering
 
