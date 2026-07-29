@@ -1,6 +1,7 @@
 import { verifyKey } from 'discord-interactions';
 import { InteractionResponseType, InteractionType } from './discord/constants.ts';
 import type { Interaction } from './discord/types.ts';
+import { NOTATION_HTML } from './generated/notation.ts';
 import { handleCommand } from './handlers.ts';
 
 export interface Env {
@@ -10,8 +11,15 @@ export interface Env {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    // GET serves the notation reference; POST is the interactions endpoint.
     if (request.method === 'GET') {
-      return new Response('dice-roller is up. Point Discord at POST /', { status: 200 });
+      return new Response(NOTATION_HTML, {
+        status: 200,
+        headers: {
+          'content-type': 'text/html;charset=UTF-8',
+          'cache-control': 'public, max-age=3600',
+        },
+      });
     }
     if (request.method !== 'POST') {
       return new Response('Method not allowed', { status: 405 });
@@ -38,7 +46,10 @@ export default {
         return json({ type: InteractionResponseType.PONG });
 
       case InteractionType.APPLICATION_COMMAND:
-        return json(handleCommand(interaction));
+        // The origin Discord just posted to. Taking it from the request rather
+        // than from config means a fork links to its own deployment, always,
+        // with nothing to set and nothing that can go stale.
+        return json(handleCommand(interaction, new URL(request.url).origin));
 
       default:
         return new Response('Unhandled interaction type', { status: 400 });

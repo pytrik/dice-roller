@@ -43,7 +43,16 @@ See [DEPLOY.md](DEPLOY.md). Not needed until the bot should run for real.
 | --- | --- |
 | `/roll` | Dice notation — see [NOTATION.md](NOTATION.md) |
 | `/dryh` | Don't Rest Your Head pool roll |
-| `/help` | The notation reference, shown only to you |
+| `/help` | How to drive the bot, shown only to you |
+
+`/help` links to the full notation reference, which **the Worker serves itself**
+at its own root URL. The link is built from the origin of the request Discord
+made, so a fork points at its own deployment with nothing to configure and no
+way to accidentally link back here.
+
+`NOTATION.md` is rendered to HTML by `npm run docs` into
+`src/generated/notation.ts`, which is committed. A test regenerates it and
+asserts it matches, so a stale page fails the suite instead of shipping.
 
 ## Dice notation
 

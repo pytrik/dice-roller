@@ -89,31 +89,46 @@ export const HELP_COMMAND = {
 
 export const COMMANDS = [ROLL_COMMAND, DRYH_COMMAND, HELP_COMMAND];
 
-/** Shown by /help. Kept under Discord's 2000-character message limit. */
-export const HELP_TEXT = `**Dice notation**
+/**
+ * Shown by /help, for people who have not used slash commands before.
+ *
+ * Deliberately short: it covers how to drive the command and the rolls people
+ * actually make, and links to the full grammar rather than dumping it into a
+ * chat message. `origin` is the Worker's own URL, so the link always points at
+ * whichever deployment answered.
+ */
+export function helpText(origin: string): string {
+  return `**How to use this bot**
 
-**Dice** — \`d6\` \`4d6\` \`d%\` (=d100) \`dF\` (Fudge) \`d0\` \`d-100\` (negative range)
-**Custom faces** — \`d[1,1,2,3]\` weighted · \`d[sword,shield,blank]\` symbols
-**Maths** — \`+\` \`-\` \`*\` · \`/\` rounds down · \`//\` rounds up · \`/~\` to nearest
+Type \`/roll\` and press **Tab** — Discord fills the rest in for you. You never
+type the option names yourself; **Tab** moves you between the fields.
 
-**Keep / drop** — \`4d6kh3\` keep highest 3 · \`2d20kl1\` keep lowest · \`5d6dl2\` drop lowest 2
-The count defaults to 1, so \`2d20kh\` is advantage and \`2d20kl\` is disadvantage.
+> \`/roll\` **Tab** \`2d6+3\` **Enter**
 
-**Exploding** — \`d6!\` · \`d6!!\` compounding · \`d6!p\` penetrating · \`d6!>4\` custom trigger
-**Rerolls** — \`d6r1\` reroll while it is a 1 · \`d6ro<3\` reroll once
-**Success pools** — \`5d10>=7\` count successes · \`5d10>=7f1\` each 1 cancels a success
+Keep pressing **Tab** to reach the optional fields, such as \`private\`, which
+shows the result to you alone.
 
-**Repeat vs multiply — these are different!**
-\`5(d4+1)\` rolls d4+1 five times and sums them  (same as \`5d4+5\`)
-\`5*(d4+1)\` rolls it once and multiplies the result by 5
-Modifiers work on groups too: \`5(d5+2)kh2\` keeps the best two results.
+**Commands**
+\`/roll\` — roll dice. This is the main one.
+\`/dryh\` — Don't Rest Your Head pools. Fill in \`pain\` and \`exhaustion\`.
+\`/help\` — this message.
 
-**Several rolls** — \`3x 1d20+5\` repeat · \`1d20+7, 2d6+4\` separate · \`1d20+5 # perception\` label
+**Rolls people actually make**
+\`d20\` — one die
+\`2d6+3\` — two dice, plus three
+\`4d6kh3\` — roll four, keep the best three
+\`2d20kh\` — advantage · \`2d20kl\` — disadvantage
+\`d6!\` — explodes: a 6 rolls again and adds
+\`d6r1\` — reroll any 1s
+\`5d10>=7\` — count successes instead of adding up
+\`3x 1d20+5\` — roll the same thing three times
+\`1d20+7, 2d6+4\` — two different rolls at once
+\`1d20+5 # perception\` — label what it was for
 
-Modifiers stack left to right: \`4d6r1kh3\` rerolls the 1s, then keeps the best 3.
-Limits: 1000 dice and 20 expressions per roll.
+Dice that did not count are ~~struck through~~ in the result, so you can always
+see what was rolled and what was dropped.
 
-**Don't Rest Your Head** — \`/dryh\` has its own command, no notation needed.
-Dice showing 1-3 are successes; your pools are compared against Pain, and Pain
-wins ties. \`pain\` and \`exhaustion\` are required; \`discipline\` defaults to 3 and
-\`madness\` to 0.`;
+**Everything else — exploding variants, custom dice, success pools, maths:**
+<${origin}>`;
+}
+

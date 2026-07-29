@@ -1,4 +1,4 @@
-import { HELP_TEXT } from './commands.ts';
+import { helpText } from './commands.ts';
 import { EPHEMERAL, InteractionResponseType } from './discord/constants.ts';
 import { getOption, type Interaction } from './discord/types.ts';
 import { rollDryh } from './dice/dryh.ts';
@@ -25,15 +25,16 @@ interface MessageResponse {
  */
 const NO_MENTIONS = { parse: [] as never[] };
 
-/** Routes an application command to its handler. */
-export function handleCommand(interaction: Interaction): MessageResponse {
+/** Routes an application command to its handler.
+ *  `origin` is the Worker's own URL, used to link to the notation reference. */
+export function handleCommand(interaction: Interaction, origin: string): MessageResponse {
   switch (interaction.data?.name) {
     case 'roll':
       return handleRoll(interaction);
     case 'dryh':
       return handleDryh(interaction);
     case 'help':
-      return reply(HELP_TEXT, true);
+      return reply(helpText(origin), true);
     default:
       return reply(`Unknown command \`${interaction.data?.name}\`.`, true);
   }
@@ -47,7 +48,7 @@ function handleRoll(interaction: Interaction): MessageResponse {
     return reply(formatProgram(rollProgram(parseProgram(notation))), isPrivate);
   } catch (error) {
     if (error instanceof DiceError) {
-      return reply(`❌ ${error.message}\nTry \`/help\` for the notation reference.`, true);
+      return reply(`❌ ${error.message}\nTry \`/help\` if you are not sure of the syntax.`, true);
     }
     console.error('roll failed', error);
     return reply('❌ Something went wrong rolling that.', true);

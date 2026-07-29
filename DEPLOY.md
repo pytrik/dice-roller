@@ -70,7 +70,7 @@ deployed (step 2) or the secret is missing or wrong (step 3).
 Discord does not say *why*. Narrow it down from the outside:
 
 ```bash
-curl https://<worker>.workers.dev                  # expect 200 and a plain message
+curl https://<worker>.workers.dev                  # expect 200 and the notation page
 curl -X POST https://<worker>.workers.dev          # expect 401, missing headers
 
 # expect 401 — a garbage signature that is REJECTED proves the check ran.

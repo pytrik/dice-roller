@@ -1,6 +1,9 @@
 node_modules/
 .env
 .dev.vars
+# Deployment specifics: hostnames, account and server names. Keeps CLAUDE.md
+# safe to publish.
+CLAUDE.local.md
 .wrangler/
 dist/
 *.log

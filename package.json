@@ -8,6 +8,8 @@
   "author": "Pytrik Elzinga",
   "scripts": {
     "dev": "wrangler dev",
+    "docs": "node scripts/build-docs.ts",
+    "predeploy": "npm run docs",
     "deploy": "wrangler deploy",
     "roll": "node scripts/roll.ts",
     "dryh": "node scripts/dryh.ts",
@@ -23,6 +25,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260722.1",
     "@types/node": "^26.1.2",
+    "marked": "^18.0.7",
     "typescript": "^5.8.3",
     "wrangler": "^4.26.0"
   }

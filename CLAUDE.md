@@ -125,16 +125,18 @@ tool output. Production secrets go in Cloudflare via `wrangler secret put`.
 ## Status
 
 - [x] Scaffold, Worker, signature verify, register script
-- [x] `.env` and `.dev.vars` filled in by the user (real credentials, git-ignored)
 - [x] **Full notation implemented** per `NOTATION.md` — scanner, parser,
-      evaluator, formatter, 81 tests
-- [x] `/roll` and `/help` (the syntax reference, ephemeral — Discord caps
-      command descriptions at 100 characters, so it cannot live there)
-- [x] **Live.** Deployed to `https://dice-roller.pytrik.workers.dev`, endpoint
-      set, `/roll` `/dryh` `/help` registered guild-scoped in the test server
-      (`SoG+P+F+K+J`). Bot is not public. Nothing registered globally yet.
-- [x] MIT licence, copyright Pytrik Elzinga — personal project, not Summit's
-- [x] `/dryh` command, with a local CLI (`npm run dryh -- --pain 4 --exhaustion 2`)
+      evaluator, formatter
+- [x] `/roll`, `/dryh`, `/help`, plus local CLIs (`npm run roll`, `npm run dryh`)
+- [x] Deployed and live, guild-scoped. Nothing registered globally; bot is not
+      public. Deployment specifics live in `CLAUDE.local.md`, which is
+      git-ignored — keep hostnames, server names and account details there.
+- [x] MIT licence
+
+`/help` is where the syntax reference lives, because Discord caps command
+descriptions at 100 characters. It links to the notation page the Worker itself
+serves, using the origin of the request Discord just made — so a fork links to
+its own deployment with nothing to configure.
 
 ## Requirements (settled 2026-07-29)
 
