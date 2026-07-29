@@ -117,10 +117,8 @@ tool output. Production secrets go in Cloudflare via `wrangler secret put`.
 - [ ] **Deploying is deliberately deferred.** User wants to write the code and
       test locally first. Steps live in `DEPLOY.md`; do not run them unasked.
       Nothing is registered with Discord and no endpoint URL is set yet.
-- [ ] `/dryh` command — specified in `NOTATION.md`'s sibling section of this
-      file, not built yet.
-- [ ] **Licence not chosen.** Must be picked before anything is published.
-      Nothing to publish yet, so it is parked.
+- [x] MIT licence, copyright Pytrik Elzinga — personal project, not Summit's
+- [ ] `/dryh` command — specified above, not built yet.
 
 ## Requirements (settled 2026-07-29)
 

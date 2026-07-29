@@ -43,6 +43,10 @@ See [NOTATION.md](NOTATION.md) for the full syntax.
 `src/dice/parser.ts` does **not** implement it yet — it is a placeholder
 supporting only `NdM` with `+`/`-`, there to prove the pipeline end to end.
 
+## Licence
+
+MIT — see [LICENSE](LICENSE).
+
 ## Secrets
 
 `.env` and `.dev.vars` are git-ignored. Production secrets live in Cloudflare
