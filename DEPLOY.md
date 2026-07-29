@@ -117,8 +117,17 @@ to register commands as well.
 
 Secrets are safe in a public repository: they are encrypted, are never exposed
 to pull requests from forks, and `workflow_dispatch` can only be triggered by
-someone with write access. Still, a token stored in GitHub is a token in one
-more place — deploying locally with `npm run deploy` avoids that entirely.
+someone with write access.
+
+**The bot token now exists in two places**, `.env` and GitHub. If it is ever
+rotated, both need updating, or the workflow will keep using the dead one:
+
+```bash
+printf '%s' "<new token>" | gh secret set DISCORD_TOKEN
+```
+
+Use `printf`, not `echo` — a trailing newline becomes part of the stored value,
+the same way it did with `DISCORD_PUBLIC_KEY`.
 
 ## When it is time for real users
 
