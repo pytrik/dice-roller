@@ -10,6 +10,10 @@ export const MAX_FACES = 100;
 export const MAX_EXPRESSIONS = 20;
 export const MAX_REPEATS = 100;
 
+/** Don't Rest Your Head pools. The game caps Exhaustion and Madness at 6, and
+ *  a Pain pool beyond that is not a roll anyone makes. */
+export const MAX_POOL = 6;
+
 /** Far beyond any real roll. Discord enforces this too, via the option's
  *  `max_length`, so an over-long argument never reaches the Worker. */
 export const MAX_INPUT_LENGTH = 500;

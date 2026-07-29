@@ -1,3 +1,4 @@
+import { isSuccess, type DryhResult, type PoolRoll } from './dryh.ts';
 import { escapeMarkdown } from './sanitize.ts';
 import type { DieGroup, Entry, ProgramResult, RollResult } from './types.ts';
 
@@ -35,10 +36,46 @@ export function formatRoll(roll: RollResult, breakdown = true): string {
   return parts.join(' ');
 }
 
+/**
+ * Renders a Don't Rest Your Head roll. Pools with no dice are left out; the
+ * summary line still accounts for them.
+ *
+ *   Discipline [2, ~~5~~, 1] → **2 successes**
+ *   ...
+ *   **Success** — you 4, Pain 2 · dominant: **Pain**
+ */
+export function formatDryh(result: DryhResult): string {
+  const lines = result.comment ? [`**${escapeMarkdown(result.comment)}**`] : [];
+
+  lines.push(...result.pools.filter((pool) => pool.faces.length > 0).map(formatPool));
+
+  const verdict = result.success ? '**Success**' : '**Failure**';
+  const dominant = result.dominant
+    ? `dominant: **${result.pools.find((pool) => pool.name === result.dominant)!.label}**`
+    : 'no dominant pool';
+
+  lines.push(
+    '',
+    `${verdict} — you ${result.playerSuccesses}, Pain ${result.painSuccesses} · ${dominant}`,
+  );
+
+  return lines.join('\n');
+}
+
+/** Dice that missed are struck through, the same as dropped dice in a roll. */
+function formatPool(pool: PoolRoll): string {
+  const faces = pool.faces.map((face) => (isSuccess(face) ? String(face) : `~~${face}~~`));
+  return `${pool.label} [${faces.join(', ')}] → **${plural(pool.successes)}**`;
+}
+
+function plural(count: number): string {
+  return `${count} ${count === 1 ? 'success' : 'successes'}`;
+}
+
 function formatTotal(roll: RollResult): string {
   switch (roll.kind) {
     case 'successes':
-      return `${roll.total} ${roll.total === 1 ? 'success' : 'successes'}`;
+      return plural(roll.total);
     case 'symbols':
       return formatSymbols(roll.symbols ?? {});
     case 'number':

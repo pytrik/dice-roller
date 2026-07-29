@@ -228,6 +228,21 @@ function rollDiceTerm(count: number, spec: DieSpec, source: string, context: Con
   };
 }
 
+const D6: DieSpec = { kind: 'range', sides: 6 };
+
+/**
+ * Rolls a pool of plain d6 and returns the faces.
+ *
+ * `/dryh` has no notation of its own, but it must not become a second dice
+ * implementation either — this keeps it on the same RNG injection and the same
+ * request budget as everything else.
+ */
+export function rollPool(count: number, rng: Rng = defaultRng, budget = new Budget()): number[] {
+  budget.spend(count);
+  const context: Context = { rng, budget, capture: false, groups: [] };
+  return Array.from({ length: count }, () => rollDie(D6, context).value);
+}
+
 /** One die. Budget is spent by the caller for the initial batch, and here for
  *  every extra die an explosion or reroll creates. */
 function rollDie(spec: DieSpec, context: Context): { value: number; symbol?: string } {

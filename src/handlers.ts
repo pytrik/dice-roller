@@ -1,9 +1,11 @@
 import { HELP_TEXT } from './commands.ts';
 import { EPHEMERAL, InteractionResponseType } from './discord/constants.ts';
 import { getOption, type Interaction } from './discord/types.ts';
-import { formatProgram } from './dice/format.ts';
+import { rollDryh } from './dice/dryh.ts';
+import { formatDryh, formatProgram } from './dice/format.ts';
 import { parseProgram } from './dice/parser.ts';
 import { rollProgram } from './dice/roller.ts';
+import { normalizeComment } from './dice/sanitize.ts';
 import { DiceError } from './dice/types.ts';
 
 interface MessageResponse {
@@ -28,6 +30,8 @@ export function handleCommand(interaction: Interaction): MessageResponse {
   switch (interaction.data?.name) {
     case 'roll':
       return handleRoll(interaction);
+    case 'dryh':
+      return handleDryh(interaction);
     case 'help':
       return reply(HELP_TEXT, true);
     default:
@@ -48,6 +52,39 @@ function handleRoll(interaction: Interaction): MessageResponse {
     console.error('roll failed', error);
     return reply('❌ Something went wrong rolling that.', true);
   }
+}
+
+function handleDryh(interaction: Interaction): MessageResponse {
+  const isPrivate = getOption(interaction, 'private') === true;
+
+  try {
+    const result = rollDryh({
+      pain: integerOption(interaction, 'pain', 0),
+      exhaustion: integerOption(interaction, 'exhaustion', 0),
+      madness: integerOption(interaction, 'madness', 0),
+      // Fixed at 3 by the rules, so it is the one pool with a safe default.
+      discipline: integerOption(interaction, 'discipline', 3),
+      comment: normalizeComment(String(getOption(interaction, 'comment') ?? '')),
+    });
+    return reply(formatDryh(result), isPrivate);
+  } catch (error) {
+    return failure(error, 'dryh');
+  }
+}
+
+/** Discord validates `min_value`/`max_value`, but the payload is still just
+ *  JSON from the network, so the value is re-checked rather than trusted. */
+function integerOption(interaction: Interaction, name: string, fallback: number): number {
+  const value = getOption(interaction, name);
+  return value === undefined ? fallback : Number(value);
+}
+
+function failure(error: unknown, command: string): MessageResponse {
+  if (error instanceof DiceError) {
+    return reply(`❌ ${error.message}`, true);
+  }
+  console.error(`${command} failed`, error);
+  return reply('❌ Something went wrong with that roll.', true);
 }
 
 function reply(content: string, ephemeral = false): MessageResponse {

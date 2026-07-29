@@ -23,7 +23,8 @@ never registers them itself.
 ```bash
 npm install
 npm run roll -- "2d6+3"   # drive the parser/evaluator from the CLI, no Discord
-npm run roll -- "2d6" --times 5 --ast
+npm run roll -- "5(d5+2)kh2" --ast
+npm run dryh -- --pain 4 --exhaustion 2   # Don't Rest Your Head
 npm test                  # unit tests (node:test, no build step)
 npm run typecheck
 npm run dev               # wrangler dev on http://localhost:8787
@@ -35,6 +36,14 @@ the Worker entirely.
 ## Deploying
 
 See [DEPLOY.md](DEPLOY.md). Not needed until the bot should run for real.
+
+## Commands
+
+| Command | Does |
+| --- | --- |
+| `/roll` | Dice notation — see [NOTATION.md](NOTATION.md) |
+| `/dryh` | Don't Rest Your Head pool roll |
+| `/help` | The notation reference, shown only to you |
 
 ## Dice notation
 

@@ -1,5 +1,5 @@
 import { ApplicationCommandOptionType } from './discord/constants.ts';
-import { MAX_INPUT_LENGTH } from './dice/limits.ts';
+import { MAX_COMMENT_LENGTH, MAX_INPUT_LENGTH, MAX_POOL } from './dice/limits.ts';
 
 /** Command definitions. Edit here, then run `npm run register`.
  *  Imported by both the Worker (to dispatch) and scripts/register.ts (to upload).
@@ -29,13 +29,65 @@ export const ROLL_COMMAND = {
   ],
 } as const;
 
+const POOL_OPTION = {
+  type: ApplicationCommandOptionType.INTEGER,
+  min_value: 0,
+  max_value: MAX_POOL,
+} as const;
+
+export const DRYH_COMMAND = {
+  name: 'dryh',
+  description: "Don't Rest Your Head: roll Discipline, Exhaustion and Madness against Pain.",
+  options: [
+    {
+      name: 'pain',
+      description: 'Pain dice the GM set (0-6)',
+      required: true,
+      ...POOL_OPTION,
+    },
+    {
+      // Required despite having an obvious default: it changes constantly in
+      // play, and a forgotten value that silently rolls 1 looks correct.
+      name: 'exhaustion',
+      description: 'Your current Exhaustion (0-6)',
+      required: true,
+      ...POOL_OPTION,
+    },
+    {
+      name: 'madness',
+      description: 'Madness dice you are spending (0-6, default 0)',
+      required: false,
+      ...POOL_OPTION,
+    },
+    {
+      name: 'discipline',
+      description: 'Discipline dice (0-6, default 3)',
+      required: false,
+      ...POOL_OPTION,
+    },
+    {
+      name: 'comment',
+      description: 'What you are rolling for, e.g. escape the ward',
+      type: ApplicationCommandOptionType.STRING,
+      required: false,
+      max_length: MAX_COMMENT_LENGTH,
+    },
+    {
+      name: 'private',
+      description: 'Only you see the result (default: false)',
+      type: ApplicationCommandOptionType.BOOLEAN,
+      required: false,
+    },
+  ],
+} as const;
+
 export const HELP_COMMAND = {
   name: 'help',
   description: 'Show the dice notation reference',
   options: [],
 } as const;
 
-export const COMMANDS = [ROLL_COMMAND, HELP_COMMAND];
+export const COMMANDS = [ROLL_COMMAND, DRYH_COMMAND, HELP_COMMAND];
 
 /** Shown by /help. Kept under Discord's 2000-character message limit. */
 export const HELP_TEXT = `**Dice notation**
@@ -59,4 +111,9 @@ Modifiers work on groups too: \`5(d5+2)kh2\` keeps the best two results.
 **Several rolls** — \`3x 1d20+5\` repeat · \`1d20+7, 2d6+4\` separate · \`1d20+5 # perception\` label
 
 Modifiers stack left to right: \`4d6r1kh3\` rerolls the 1s, then keeps the best 3.
-Limits: 1000 dice and 20 expressions per roll.`;
+Limits: 1000 dice and 20 expressions per roll.
+
+**Don't Rest Your Head** — \`/dryh\` has its own command, no notation needed.
+Dice showing 1-3 are successes; your pools are compared against Pain, and Pain
+wins ties. \`pain\` and \`exhaustion\` are required; \`discipline\` defaults to 3 and
+\`madness\` to 0.`;

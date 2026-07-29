@@ -118,7 +118,7 @@ tool output. Production secrets go in Cloudflare via `wrangler secret put`.
       test locally first. Steps live in `DEPLOY.md`; do not run them unasked.
       Nothing is registered with Discord and no endpoint URL is set yet.
 - [x] MIT licence, copyright Pytrik Elzinga — personal project, not Summit's
-- [ ] `/dryh` command — specified above, not built yet.
+- [x] `/dryh` command, with a local CLI (`npm run dryh -- --pain 4 --exhaustion 2`)
 
 ## Requirements (settled 2026-07-29)
 
@@ -174,14 +174,29 @@ These are **different operations** and both are supported:
 ### Don't Rest Your Head
 
 Its own `/dryh` command with named integer options per pool — not notation
-inside `/roll`. Rules as confirmed by the user:
+inside `/roll`. Full spec in `NOTATION.md`. Successes are dice showing 1-3;
+Discipline + Exhaustion + Madness are compared against Pain.
 
-- Successes are dice showing **1-3**.
-- Player pools (Discipline + Exhaustion + Madness) are summed and compared
-  against Pain. More successes than Pain = success.
-- **Dominant pool** = the one holding the highest single *successful* die.
-  Tie-break order is our choice; document whatever is picked so it can be
-  corrected after the user sees it run.
+Both tie-breaks are ours rather than the book's, so they are the first thing to
+revisit if the user's table disagrees: a successes tie goes to Pain, and a
+dominance tie goes to the more dangerous pool
+(Pain > Madness > Exhaustion > Discipline).
+
+### Discord command options
+
+Worth knowing before designing another command, because it is easy to get
+wrong from the outside:
+
+- **Users never type option names.** The client inserts `pain:` on Tab, so
+  short or abbreviated option names save nothing and cost discoverability.
+- **Options cannot have aliases.** An option has exactly one `name`; a second
+  name means a second field in the UI, which anyone could also fill in.
+- **There are no positional arguments.** Everything is `name:value`. Order-based
+  input is only possible by parsing one string option yourself, which throws
+  away the labelling the UI gives for free.
+- **Autocomplete suggests values for one option, not names.** It needs a
+  separate interaction type answered within 3 seconds, and is pointless for
+  small integer ranges.
 
 ### Decided without asking
 

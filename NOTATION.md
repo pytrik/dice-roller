@@ -199,6 +199,57 @@ once per level. Without it a long run of `(` overflows the stack, and a
 `RangeError` is not a `DiceError`, so it would reach the user as "something
 went wrong" rather than as advice.
 
+## Don't Rest Your Head (`/dryh`)
+
+Its own command rather than notation — the pools are system-specific and would
+be clutter in a general parser.
+
+```
+/dryh pain:4 exhaustion:2 madness:1 discipline:3 comment:"escape the ward"
+```
+
+| Option | Required | Default |
+| --- | --- | --- |
+| `pain` | yes | — |
+| `exhaustion` | yes | — |
+| `madness` | no | 0 |
+| `discipline` | no | 3 |
+| `comment` | no | — |
+| `private` | no | false |
+
+Each pool is 0–6 d6. `discipline` defaults to 3 because the rules fix it there,
+and `madness` to 0 because not spending is the safe default. `exhaustion` is
+required despite having an obvious default: it changes constantly in play, and
+a forgotten value that silently rolls 1 produces a wrong answer that looks
+right.
+
+**Rules.** Every die showing **1–3** is a success. Discipline, Exhaustion and
+Madness are counted together and compared against Pain. The **dominant** pool
+is the one holding the highest single *successful* die.
+
+**Two tie-breaks are ours, not the book's**, and are open to correction:
+
+- **Successes tie → Pain wins.** The player must exceed Pain, not match it.
+- **Dominance tie → the more dangerous pool wins**, in the order
+  Pain > Madness > Exhaustion > Discipline. Domination is meant to cost
+  something, so this errs towards consequence.
+
+If nothing succeeded anywhere, no pool dominates and the output says so.
+
+```
+**escape the ward**
+Discipline [2, ~~5~~, 1] → **2 successes**
+Exhaustion [3, ~~6~~] → **1 success**
+Madness [1] → **1 success**
+Pain [2, ~~4~~, 3, ~~6~~] → **2 successes**
+
+**Success** — you 4, Pain 2 · dominant: **Pain**
+```
+
+Struck-through dice are the ones that missed, matching how `/roll` marks dice
+that did not count. Pools with no dice are left out of the breakdown; the
+summary line still accounts for them.
+
 ## Untrusted text
 
 Face names and comments are the only free text in the notation, and both are
