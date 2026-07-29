@@ -40,6 +40,8 @@ src/dice/parser.ts      text -> AST      (PLACEHOLDER, to be replaced)
 src/dice/roller.ts      AST -> result    (evaluator, RNG injected)
 src/dice/format.ts      result -> Discord markdown
 scripts/register.ts     uploads commands to Discord (Node, not the Worker)
+scripts/roll.ts         local CLI: `npm run roll -- "2d6+3"` — no Discord
+DEPLOY.md               go-live steps, deliberately deferred
 ```
 
 ## Conventions
@@ -73,9 +75,12 @@ tool output. Production secrets go in Cloudflare via `wrangler secret put`.
 ## Status
 
 - [x] Scaffold, Worker, signature verify, `/roll`, register script, tests
-- [ ] Not yet deployed; Interactions Endpoint URL not yet set in the portal
-- [ ] **Real dice notation — requirements not gathered yet.** The current
-      parser handles only `NdM` with `+`/`-` and exists to prove the pipeline.
+- [x] `.env` and `.dev.vars` filled in by the user (real credentials, git-ignored)
+- [ ] **Deploying is deliberately deferred.** User wants to write the code and
+      test locally first. Steps live in `DEPLOY.md`; do not run them unasked.
+      Nothing is registered with Discord and no endpoint URL is set yet.
+- [ ] **Real dice notation — requirements being gathered.** The current parser
+      handles only `NdM` with `+`/`-` and exists to prove the pipeline.
 
 ## Open questions
 
@@ -85,3 +90,6 @@ Ask these before writing the real parser:
 - Result presentation: plain text vs embeds? Show every die or just the total?
 - Saved/named rolls per user — needed? (would require storage: KV or D1)
 - Should `/roll` support multiple rolls at once (`3x 1d20+5`)?
+
+The user expects to add requirements beyond this list — treat it as a starting
+point, not the full spec.

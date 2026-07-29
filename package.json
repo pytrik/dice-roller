@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "roll": "node scripts/roll.ts",
     "register": "node --env-file=.env scripts/register.ts",
     "register:global": "node --env-file=.env scripts/register.ts --global",
     "typecheck": "tsc --noEmit",
