@@ -12,6 +12,7 @@
     "roll": "node scripts/roll.ts",
     "dryh": "node scripts/dryh.ts",
     "register": "node --env-file=.env scripts/register.ts",
+    "endpoint": "node --env-file=.env scripts/endpoint.ts",
     "register:global": "node --env-file=.env scripts/register.ts --global",
     "typecheck": "tsc --noEmit",
     "test": "node --test"

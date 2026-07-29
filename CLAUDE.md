@@ -100,6 +100,22 @@ matter, which are about *echoed* text rather than parsed text.
 - Worker free tier: 10ms CPU per request. Guard rails live in `parser.ts`
   (`MAX_DICE`, `MAX_SIDES`).
 
+## Deployment gotchas
+
+Both of these cost real time once; do not rediscover them.
+
+- **`wrangler secret put` keeps a trailing newline.** Piping with `echo` (or
+  any PowerShell pipeline) stores a 65-character key and every signature check
+  fails. Discord then reports only "could not be verified" while the Worker
+  looks perfectly healthy from outside. Use `printf '%s'` or the prompt.
+- **A 401 from the Worker is the good outcome** when probing with a garbage
+  signature: it proves verification ran and returned false. A 500 would mean it
+  threw. That single probe separates "key is wrong" from "library is broken",
+  which is otherwise invisible.
+
+`npm run endpoint -- <url>` sets the interactions endpoint through the API, so
+the Developer Portal is never needed. `--clear` removes it.
+
 ## Secrets
 
 `.env` (bot token, app ID, guild ID) and `.dev.vars` (public key) are
@@ -114,9 +130,9 @@ tool output. Production secrets go in Cloudflare via `wrangler secret put`.
       evaluator, formatter, 81 tests
 - [x] `/roll` and `/help` (the syntax reference, ephemeral — Discord caps
       command descriptions at 100 characters, so it cannot live there)
-- [ ] **Deploying is deliberately deferred.** User wants to write the code and
-      test locally first. Steps live in `DEPLOY.md`; do not run them unasked.
-      Nothing is registered with Discord and no endpoint URL is set yet.
+- [x] **Live.** Deployed to `https://dice-roller.pytrik.workers.dev`, endpoint
+      set, `/roll` `/dryh` `/help` registered guild-scoped in the test server
+      (`SoG+P+F+K+J`). Bot is not public. Nothing registered globally yet.
 - [x] MIT licence, copyright Pytrik Elzinga — personal project, not Summit's
 - [x] `/dryh` command, with a local CLI (`npm run dryh -- --pain 4 --exhaustion 2`)
 
