@@ -1,8 +1,9 @@
+import { HELP_TEXT } from './commands.ts';
 import { EPHEMERAL, InteractionResponseType } from './discord/constants.ts';
 import { getOption, type Interaction } from './discord/types.ts';
-import { formatResult } from './dice/format.ts';
-import { parse } from './dice/parser.ts';
-import { evaluate } from './dice/roller.ts';
+import { formatProgram } from './dice/format.ts';
+import { parseProgram } from './dice/parser.ts';
+import { rollProgram } from './dice/roller.ts';
 import { DiceError } from './dice/types.ts';
 
 interface MessageResponse {
@@ -15,6 +16,8 @@ export function handleCommand(interaction: Interaction): MessageResponse {
   switch (interaction.data?.name) {
     case 'roll':
       return handleRoll(interaction);
+    case 'help':
+      return reply(HELP_TEXT, true);
     default:
       return reply(`Unknown command \`${interaction.data?.name}\`.`, true);
   }
@@ -25,10 +28,11 @@ function handleRoll(interaction: Interaction): MessageResponse {
   const isPrivate = getOption(interaction, 'private') === true;
 
   try {
-    const result = evaluate(parse(notation));
-    return reply(formatResult(notation, result), isPrivate);
+    return reply(formatProgram(rollProgram(parseProgram(notation))), isPrivate);
   } catch (error) {
-    if (error instanceof DiceError) return reply(`❌ ${error.message}`, true);
+    if (error instanceof DiceError) {
+      return reply(`❌ ${error.message}\nTry \`/help\` for the notation reference.`, true);
+    }
     console.error('roll failed', error);
     return reply('❌ Something went wrong rolling that.', true);
   }

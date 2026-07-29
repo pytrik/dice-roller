@@ -35,10 +35,12 @@ src/handlers.ts         Command dispatch -> interaction responses
 src/commands.ts         Slash-command definitions (shared with register script)
 src/discord/constants.ts  API enums, kept local
 src/discord/types.ts    Interaction payload types + option accessors
-src/dice/types.ts       AST `Node`, `RollResult`, `DiceError`, `Rng`  <- the seam
-src/dice/parser.ts      text -> AST      (PLACEHOLDER, to be replaced)
+src/dice/types.ts       AST, results, `DiceError`, `Rng`  <- the seam
+src/dice/scanner.ts     character cursor the parser drives
+src/dice/parser.ts      text -> AST      (recursive descent)
 src/dice/roller.ts      AST -> result    (evaluator, RNG injected)
 src/dice/format.ts      result -> Discord markdown
+src/dice/limits.ts      caps + the shared per-request dice budget
 scripts/register.ts     uploads commands to Discord (Node, not the Worker)
 scripts/roll.ts         local CLI: `npm run roll -- "2d6+3"` — no Discord
 DEPLOY.md               go-live steps, deliberately deferred
@@ -46,9 +48,18 @@ DEPLOY.md               go-live steps, deliberately deferred
 
 ## Conventions
 
-- **The seam is `parse` / `evaluate`.** Parser produces a `Node` tree and never
-  rolls; evaluator rolls and never parses. Extending notation = extend the
+- **The seam is `parse` / `roll`.** The parser produces a `Node` tree and never
+  rolls; the evaluator rolls and never parses. Extending notation = extend the
   `Node` union in `dice/types.ts`, then both halves independently.
+- **A dice term and a repetition group both produce a LIST, and every modifier
+  consumes a list.** That is why `4d6kh3` and `5(d5+2)kh2` share one code path.
+  Keep it that way when adding modifiers.
+- **No separate token stream.** The grammar is context-sensitive (`d` starts a
+  die but `dl` is drop-lowest; `>` is a success test unless it follows `!`), so
+  the parser drives a `Scanner` cursor and asks for what it expects.
+- **Node strips types without transforming them** (`erasableSyntaxOnly`), so no
+  enums, no namespaces, and no `constructor(readonly x: T)` parameter
+  properties — they parse but fail at runtime.
 - **RNG is injected** (`Rng = () => number`), so every roll is testable with a
   fixed sequence. Never call `Math.random()` outside `defaultRng`.
 - **User-fixable errors throw `DiceError`**; its message is shown to the user.
@@ -74,13 +85,19 @@ tool output. Production secrets go in Cloudflare via `wrangler secret put`.
 
 ## Status
 
-- [x] Scaffold, Worker, signature verify, `/roll`, register script, tests
+- [x] Scaffold, Worker, signature verify, register script
 - [x] `.env` and `.dev.vars` filled in by the user (real credentials, git-ignored)
+- [x] **Full notation implemented** per `NOTATION.md` — scanner, parser,
+      evaluator, formatter, 81 tests
+- [x] `/roll` and `/help` (the syntax reference, ephemeral — Discord caps
+      command descriptions at 100 characters, so it cannot live there)
 - [ ] **Deploying is deliberately deferred.** User wants to write the code and
       test locally first. Steps live in `DEPLOY.md`; do not run them unasked.
       Nothing is registered with Discord and no endpoint URL is set yet.
-- [ ] **Real dice notation — requirements being gathered.** The current parser
-      handles only `NdM` with `+`/`-` and exists to prove the pipeline.
+- [ ] `/dryh` command — specified in `NOTATION.md`'s sibling section of this
+      file, not built yet.
+- [ ] **Licence not chosen.** Must be picked before anything is published.
+      Nothing to publish yet, so it is parked.
 
 ## Requirements (settled 2026-07-29)
 
