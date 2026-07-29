@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dice-roller",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "observability": {
+    "enabled": true
+  }
+  // Secrets are NOT stored here. Local dev reads them from .dev.vars;
+  // production reads them from `wrangler secret put <NAME>`.
+}

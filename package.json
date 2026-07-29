@@ -1,0 +1,24 @@
+{
+  "name": "dice-roller",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Flexible dice-rolling Discord bot running on Cloudflare Workers",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "register": "node --env-file=.env scripts/register.ts",
+    "register:global": "node --env-file=.env scripts/register.ts --global",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "discord-interactions": "^4.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260722.1",
+    "@types/node": "^26.1.2",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.26.0"
+  }
+}

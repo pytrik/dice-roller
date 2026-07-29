@@ -1,0 +1,2 @@
+# Copy to .dev.vars and fill in. Used by `wrangler dev`.
+DISCORD_PUBLIC_KEY=
