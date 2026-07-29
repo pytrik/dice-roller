@@ -146,14 +146,29 @@ printf '%s' "<new token>" | gh secret set DISCORD_TOKEN
 Use `printf`, not `echo` — a trailing newline becomes part of the stored value,
 the same way it did with `DISCORD_PUBLIC_KEY`.
 
-## When it is time for real users
+## Command scope, and why this stays guild-scoped
+
+This bot is deliberately **not public**: `bot_public` is off, so only the
+application owner can add it to a server. Anyone who wants their own copy is
+expected to deploy this repository themselves, which is why the notation page
+is served by the Worker rather than linked to a central one.
+
+Commands are registered **per guild**, and should stay that way. Guild
+registration is not a development-only compromise — for a bot living in one
+server it is strictly better, because changes appear instantly where global
+registration takes up to an hour to propagate.
 
 ```bash
-npm run register:global   # global commands, up to ~1h to propagate
+npm run register          # guild-scoped: instant
+npm run register:global   # every server the bot is in: up to ~1h
 ```
 
-Keep the guild registration for development — global commands are slow to
-update and you do not want to wait an hour per iteration.
+Global registration is only worth it if the bot joins several servers and you
+tire of registering per guild. It has nothing to do with making the bot public
+— that is the `bot_public` switch in the Developer Portal, and it is off.
+
+To add the bot to another of your own servers, put that server's ID in
+`DISCORD_GUILD_ID` and run `npm run register` again.
 
 ## Redeploying
 

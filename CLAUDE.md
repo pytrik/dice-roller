@@ -136,9 +136,17 @@ tool output. Production secrets go in Cloudflare via `wrangler secret put`.
 - [x] **Full notation implemented** per `NOTATION.md` — scanner, parser,
       evaluator, formatter
 - [x] `/roll`, `/dryh`, `/help`, plus local CLIs (`npm run roll`, `npm run dryh`)
-- [x] Deployed and live, guild-scoped. Nothing registered globally; bot is not
-      public. Deployment specifics live in `CLAUDE.local.md`, which is
-      git-ignored — keep hostnames, server names and account details there.
+- [x] Deployed and live, guild-scoped. Deployment specifics live in
+      `CLAUDE.local.md`, which is git-ignored — keep hostnames, server names
+      and account details there.
+
+**Staying private is a decision, not an unfinished step.** `bot_public` is off
+and commands are registered per guild; do not suggest global registration or a
+public bot as a next step. The code being public is the sharing model — anyone
+who wants their own copy deploys the repo, which is why the Worker serves its
+own notation page instead of linking to a central one. Global registration
+would only become relevant if the bot joined several servers belonging to the
+owner, and even then per-guild registration is faster.
 - [x] MIT licence
 
 `/help` is where the syntax reference lives, because Discord caps command
