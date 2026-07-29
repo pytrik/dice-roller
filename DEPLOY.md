@@ -106,7 +106,7 @@ It needs these repository secrets (Settings → Secrets and variables → Action
 
 | Secret | Where it comes from |
 | --- | --- |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare dashboard → My Profile → API Tokens → "Edit Cloudflare Workers" |
+| `CLOUDFLARE_API_TOKEN` | see below |
 | `CLOUDFLARE_ACCOUNT_ID` | `npx wrangler whoami` |
 | `DISCORD_TOKEN` | only needed if registering commands |
 | `DISCORD_APPLICATION_ID` | only needed if registering commands |
@@ -114,6 +114,23 @@ It needs these repository secrets (Settings → Secrets and variables → Action
 
 The first two are enough to deploy. Add the Discord three only if you want CI
 to register commands as well.
+
+### The Cloudflare token needs exactly one permission
+
+Dashboard → Manage account → Account API tokens → Create token → custom policy:
+
+> **Workers Scripts → Edit**, scoped to the one account.
+
+That is the whole list, and it is confirmed working — not a guess. `Account
+Settings: Read` is **not** required, because the workflow passes
+`CLOUDFLARE_ACCOUNT_ID` explicitly rather than enumerating accounts.
+
+The prebuilt "Edit Cloudflare Workers" template also works but grants KV,
+Routes and Tail, none of which this Worker uses — it has no bindings at all.
+
+Nothing else under a `worker` search applies: Workers CI is Cloudflare's own
+build system, Observability and Tail are for reading logs, and the storage
+permissions are for bindings this project does not have.
 
 Secrets are safe in a public repository: they are encrypted, are never exposed
 to pull requests from forks, and `workflow_dispatch` can only be triggered by
