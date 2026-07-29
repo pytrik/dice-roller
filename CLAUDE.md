@@ -112,6 +112,14 @@ Both of these cost real time once; do not rediscover them.
   signature: it proves verification ran and returned false. A 500 would mean it
   threw. That single probe separates "key is wrong" from "library is broken",
   which is otherwise invisible.
+- **Cloudflare strips the `ETag` from the docs page in production.** The Worker
+  does send it, and `src/index.test.ts` proves it along with the 304 path —
+  this is edge behaviour, not a bug, so do not go looking for one. Freshness
+  does not depend on it: `max-age=0, must-revalidate` already forces a
+  revalidation on every view, and the ETag only saves resending ~15 KB.
+- **Verify a deploy with a cache-buster query.** A plain fetch can return the
+  previous version's headers while propagation finishes, which reads exactly
+  like a failed deploy.
 
 `npm run endpoint -- <url>` sets the interactions endpoint through the API, so
 the Developer Portal is never needed. `--clear` removes it.

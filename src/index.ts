@@ -1,7 +1,7 @@
 import { verifyKey } from 'discord-interactions';
 import { InteractionResponseType, InteractionType } from './discord/constants.ts';
 import type { Interaction } from './discord/types.ts';
-import { NOTATION_HTML } from './generated/notation.ts';
+import { NOTATION_ETAG, NOTATION_HTML } from './generated/notation.ts';
 import { handleCommand } from './handlers.ts';
 
 export interface Env {
@@ -13,13 +13,19 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     // GET serves the notation reference; POST is the interactions endpoint.
     if (request.method === 'GET') {
-      return new Response(NOTATION_HTML, {
-        status: 200,
-        headers: {
-          'content-type': 'text/html;charset=UTF-8',
-          'cache-control': 'public, max-age=3600',
-        },
-      });
+      // Revalidate every time, but answer 304 when nothing changed. The page's
+      // value is matching the deployed code, so it must never be served stale;
+      // the ETag keeps that cheap.
+      const headers = {
+        'content-type': 'text/html;charset=UTF-8',
+        'cache-control': 'public, max-age=0, must-revalidate',
+        etag: NOTATION_ETAG,
+      };
+
+      if (request.headers.get('if-none-match') === NOTATION_ETAG) {
+        return new Response(null, { status: 304, headers });
+      }
+      return new Response(NOTATION_HTML, { status: 200, headers });
     }
     if (request.method !== 'POST') {
       return new Response('Method not allowed', { status: 405 });

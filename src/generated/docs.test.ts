@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
-import { renderPage } from '../../scripts/build-docs.ts';
+import { etagFor, renderPage } from '../../scripts/build-docs.ts';
 import { helpText } from '../commands.ts';
-import { NOTATION_HTML } from './notation.ts';
+import { NOTATION_ETAG, NOTATION_HTML } from './notation.ts';
 
 describe('generated notation page', () => {
   it('matches NOTATION.md — run `npm run docs` if this fails', () => {
@@ -12,6 +12,13 @@ describe('generated notation page', () => {
       renderPage(readFileSync('NOTATION.md', 'utf8')),
       'src/generated/notation.ts is stale. Regenerate it with `npm run docs`.',
     );
+  });
+
+  it('carries an ETag matching its own content', () => {
+    // A stale ETag would cache the old page past a deploy, which is exactly
+    // what the ETag exists to prevent.
+    assert.equal(NOTATION_ETAG, etagFor(NOTATION_HTML));
+    assert.match(NOTATION_ETAG, /^"[0-9a-f]{16}"$/);
   });
 
   it('is a complete HTML document', () => {
