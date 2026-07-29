@@ -1,7 +1,11 @@
-# Dice notation spec
+# Dice notation
 
-The contract the parser implements. Settled with the user on 2026-07-29.
-Everything here is decided; anything not here is still open.
+Everything on this page works. `src/dice/spec.test.ts` rolls every example
+below, so the page and the parser cannot drift apart without failing the test
+suite.
+
+This is also the specification: it is what the parser is written against, and
+what to change first when adding notation.
 
 ## Quick tour
 

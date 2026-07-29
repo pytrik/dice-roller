@@ -96,6 +96,30 @@ npm run register
 
 Then type `/roll 2d6+3` in the server.
 
+## Deploying from GitHub Actions
+
+`.github/workflows/deploy.yml` runs the same steps, but **manual dispatch
+only** — nothing deploys on push. Actions tab → Deploy → Run workflow. It
+typechecks and tests first, and can optionally re-register the commands.
+
+It needs these repository secrets (Settings → Secrets and variables → Actions):
+
+| Secret | Where it comes from |
+| --- | --- |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare dashboard → My Profile → API Tokens → "Edit Cloudflare Workers" |
+| `CLOUDFLARE_ACCOUNT_ID` | `npx wrangler whoami` |
+| `DISCORD_TOKEN` | only needed if registering commands |
+| `DISCORD_APPLICATION_ID` | only needed if registering commands |
+| `DISCORD_GUILD_ID` | only needed if registering commands |
+
+The first two are enough to deploy. Add the Discord three only if you want CI
+to register commands as well.
+
+Secrets are safe in a public repository: they are encrypted, are never exposed
+to pull requests from forks, and `workflow_dispatch` can only be triggered by
+someone with write access. Still, a token stored in GitHub is a token in one
+more place — deploying locally with `npm run deploy` avoids that entirely.
+
 ## When it is time for real users
 
 ```bash

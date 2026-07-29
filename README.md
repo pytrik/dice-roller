@@ -13,6 +13,8 @@ Discord  --POST signed interaction-->  Cloudflare Worker (src/index.ts)
                                          |    dice/roller.ts   AST  -> result
                                          |    dice/format.ts   result -> markdown
                                          '- JSON response (shown in channel)
+
+GET on the same URL serves the notation reference, rendered from NOTATION.md.
 ```
 
 Slash commands are uploaded separately by `scripts/register.ts` — the Worker
@@ -56,10 +58,39 @@ asserts it matches, so a stale page fails the suite instead of shipping.
 
 ## Dice notation
 
-See [NOTATION.md](NOTATION.md) for the full syntax.
+See [NOTATION.md](NOTATION.md) for the full syntax — keep/drop, three explosion
+styles, rerolls, success pools with botches, custom and symbolic faces, Fudge
+dice, mirrored negative dice, repetition groups and three rounding divisions.
 
-`src/dice/parser.ts` does **not** implement it yet — it is a placeholder
-supporting only `NdM` with `+`/`-`, there to prove the pipeline end to end.
+```
+`3d12 + 1d10 + 5(d5+2)kh2` → 3d12 [9, 8, 5]  1d10 [10]  5(d5+2) [5, 7, ~~4~~, ~~4~~, ~~5~~] = **44**
+```
+
+The parser is hand-written — a character scanner rather than a token stream,
+because the grammar is context-sensitive: `d` starts a die but `dl` is
+drop-lowest, and `>` is a success test unless it follows `!`. Every example in
+`NOTATION.md` is rolled by `src/dice/spec.test.ts`, so the documentation cannot
+drift away from the implementation.
+
+## How this was built
+
+**This project was written with AI assistance.** Essentially all of the code,
+tests and documentation in this repository were produced by
+[Claude Opus](https://www.anthropic.com/claude) running in
+[Claude Code](https://claude.com/claude-code), working from my requirements
+across a series of conversations.
+
+I directed the work rather than typing it: I chose the platform and the
+notation, made the design calls the model put to me — how repetition composes
+with keep/drop, how ties resolve in `/dryh`, what the safety limits should be —
+reviewed the output, and tested it against a real Discord server. The model
+proposed the architecture, wrote the parser and evaluator, found and fixed the
+denial-of-service holes in its own first draft, and deployed it.
+
+Saying so plainly seems better than leaving people to guess. If you are
+evaluating this code, weigh it on its merits — the test suite is thorough and
+the reasoning is recorded in the commit messages, which is the honest place to
+judge it from.
 
 ## Licence
 
