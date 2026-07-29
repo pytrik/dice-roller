@@ -38,8 +38,10 @@ See [DEPLOY.md](DEPLOY.md). Not needed until the bot should run for real.
 
 ## Dice notation
 
-`src/dice/parser.ts` is a **placeholder** supporting only `NdM` with `+`/`-`.
-The real notation is being designed — see `CLAUDE.md`.
+See [NOTATION.md](NOTATION.md) for the full syntax.
+
+`src/dice/parser.ts` does **not** implement it yet — it is a placeholder
+supporting only `NdM` with `+`/`-`, there to prove the pipeline end to end.
 
 ## Secrets
 

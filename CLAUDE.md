@@ -82,14 +82,90 @@ tool output. Production secrets go in Cloudflare via `wrangler secret put`.
 - [ ] **Real dice notation — requirements being gathered.** The current parser
       handles only `NdM` with `+`/`-` and exists to prove the pipeline.
 
+## Requirements (settled 2026-07-29)
+
+Mechanics — all of these are in scope:
+- Keep/drop: `4d6kh3`, `2d20kl1`, `5d6dl2`
+- Exploding and rerolls: `d6!`, `d6r1`, `d6ro<3`
+- Success pools: `5d10>7` (counting, not summing)
+- Non-numeric dice: Fudge `4dF`, custom faces
+- **Don't Rest Your Head** style pool rolling
+- **Weird-sided dice**: `d0`, `d-100`. Integer sides only — no fractional dice.
+- **Parentheses and repetition**: `5(d4+1)` means roll `d4+1` five times and
+  sum, i.e. equivalent to `5d4+5`. `5(d5+2)kh2` keeps the highest 2 *group
+  results*, not faces.
+- **Sums of mixed terms**: `3d12 + 1d10 + 5(d5+2)kh2`
+
+Interface:
+- Plain-text output with a full breakdown (no embeds), e.g.
+  `` `4d6kh3` → 4d6 [5, 4, 3, ~~1~~] = **12** ``
+- **Stateless.** No KV, no D1, no saved rolls, no history.
+- `/roll` conveniences wanted: repeat (`3x 1d20+5`), labels/comments
+  (`1d20+5 # perception`), several expressions at once (`1d20+5, 2d6+3`)
+- Not wanted for now: autocomplete
+
+### Design consequence
+
+Keep/drop applies to a **list of values**, and that list is either the faces of
+a dice term or the results of a repeated group. So the AST needs a uniform
+"produces a list" notion rather than treating keep/drop as a dice-only suffix.
+Modifiers compose on top of any list-producing node.
+
+### Die ranges
+
+A die is a uniform pick from a contiguous range; a negative side count mirrors
+the positive one. Sides must be integers.
+
+```
+d0    -> 0 (always)      d6    -> 1..6
+d1    -> 1               d-6   -> -6..-1
+                         d-100 -> -100..-1
+```
+
+### Grammar: juxtaposition vs multiplication
+
+These are **different operations** and both are supported:
+
+```
+5(d4+1)    roll d4+1 five times and sum   ==  5d4+5
+5*(d4+1)   roll d4+1 once, multiply by 5
+5d4kh2     keep the highest 2 faces
+5(d4)kh2   keep the highest 2 group results
+```
+
+### Don't Rest Your Head
+
+Its own `/dryh` command with named integer options per pool — not notation
+inside `/roll`. Rules as confirmed by the user:
+
+- Successes are dice showing **1-3**.
+- Player pools (Discipline + Exhaustion + Madness) are summed and compared
+  against Pain. More successes than Pain = success.
+- **Dominant pool** = the one holding the highest single *successful* die.
+  Tie-break order is our choice; document whatever is picked so it can be
+  corrected after the user sees it run.
+
+### Decided without asking
+
+- Exploding and rerolls are capped (a `d1!` would otherwise never terminate).
+  Cap is per-term and raises a `DiceError` rather than silently truncating.
+- Modifiers stack left to right: `4d6r1kh3` rerolls first, then keeps.
+- `3x` prefix repeats an expression as separate results; `,` separates
+  independent expressions; `#` starts a trailing comment/label.
+
+### Notation spec
+
+**`NOTATION.md` is the contract.** Full syntax, semantics, precedence, limits
+and output format live there — read it before touching `src/dice/`. Keep it and
+the parser in step; if one changes, change the other in the same commit.
+
+Summary of what was settled beyond the basics: `/` floors, `//` ceilings, `/~`
+rounds to nearest; success pools are comparison suffixes with an optional `fC`
+botch clause; custom faces are `d[...]` lists (numeric ones sum, symbolic ones
+tally); exploding has `!`, `!!` and `!p` variants with comparison triggers; all
+limits raise `DiceError` rather than truncating.
+
 ## Open questions
 
-Ask these before writing the real parser:
-- Which systems/notations matter (D&D 5e advantage, keep/drop `4d6kh3`,
-  exploding `d6!`, reroll `d6r1`, success pools `5d10>7`, Fudge `4dF`)?
-- Result presentation: plain text vs embeds? Show every die or just the total?
-- Saved/named rolls per user — needed? (would require storage: KV or D1)
-- Should `/roll` support multiple rolls at once (`3x 1d20+5`)?
-
-The user expects to add requirements beyond this list — treat it as a starting
-point, not the full spec.
+None blocking. The user said they expect to add requirements — treat
+`NOTATION.md` as settled-so-far, not finished.
