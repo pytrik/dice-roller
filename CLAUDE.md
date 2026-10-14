@@ -121,6 +121,12 @@ Both of these cost real time once; do not rediscover them.
   previous version's headers while propagation finishes, which reads exactly
   like a failed deploy.
 
+- **`allowScripts` in `package.json` approves `esbuild` and `workerd` by
+  name, not version.** npm 11 warns about unapproved install scripts and may
+  later block them, which would leave wrangler without its runtime binary.
+  `npm install-scripts approve` writes exact versions; `workerd` releases
+  almost daily, so those would go stale on the next update.
+
 `npm run endpoint -- <url>` sets the interactions endpoint through the API, so
 the Developer Portal is never needed. `--clear` removes it.
 

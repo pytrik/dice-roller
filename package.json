@@ -28,5 +28,9 @@
     "marked": "^18.0.7",
     "typescript": "^7.0.2",
     "wrangler": "^4.26.0"
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "workerd": true
   }
 }
