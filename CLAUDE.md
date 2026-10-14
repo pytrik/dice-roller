@@ -20,7 +20,7 @@ Discord dice-rolling bot. Cloudflare Worker, HTTP Interactions, TypeScript, no b
 | --- | --- | --- |
 | Runtime | Cloudflare Workers | free, no 24/7 process, no server upkeep |
 | Transport | HTTP Interactions (webhook) | slash commands only — no Gateway needed |
-| Language | TypeScript, Node 24 | native `.ts` execution, `--env-file`; no bundler config |
+| Language | TypeScript, Node 24 | native `.ts` execution, `--env-file`; no bundler config. `tsc` (TS 7, native) only typechecks |
 | Deps | `discord-interactions` only | signature verification; everything else hand-rolled |
 | Tests | `node:test` | zero deps, no build step |
 
